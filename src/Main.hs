@@ -22,9 +22,15 @@ isWhitespace :: String -> Bool
 isWhitespace = all isSpace
 -}
 
+possibleFlags :: String
 possibleFlags = "hlme"
+possibleLFlags :: [String]
 possibleLFlags = ["prospective", "optional", "unneeded"]
 
+-- If the list is empty, return "", else it'll return the first element
+firstOrEmpty :: [String] -> String
+firstOrEmpty []         = ""
+firstOrEmpty (str:strs) = str
 
 -- Deletes all null strings from list
 deleteEmpty :: [String] -> [String]
@@ -133,6 +139,7 @@ main = do
     let lf = ("prospective" `elem` longFlags, "optional" `elem` longFlags, "unneeded" `elem` longFlags)
     let strList = parseRaw lf parse1
 
+    -- Get rid of whitespace, and also limit each line to one word, dropping the rest
+    let trimmedList = deleteEmpty (map (firstOrEmpty . words) strList)
 
-
-    putStrLn (show strList)
+    putStrLn (show trimmedList)

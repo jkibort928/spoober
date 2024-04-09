@@ -188,7 +188,7 @@ main = do
                 'l' `elem` flags
             then
                 do
-                    putStrLn (show (extractHeaders trimmedList))
+                    putStrLn (show ((removeDups . extractHeaders) trimmedList))
             else if
                 'm' `elem` flags
             then 

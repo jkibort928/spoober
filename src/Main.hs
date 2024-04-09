@@ -22,6 +22,9 @@ isWhitespace :: String -> Bool
 isWhitespace = all isSpace
 -}
 
+helpMessage :: String
+helpMessage = "hai"
+
 possibleFlags :: String
 possibleFlags = "hlme"
 possibleLFlags :: [String]
@@ -35,6 +38,38 @@ firstOrEmpty (str:strs) = str
 -- Deletes all null strings from list
 deleteEmpty :: [String] -> [String]
 deleteEmpty = filter (not . null)
+
+-- Removes duplicate entries from a list
+removeDups :: forall a. Eq a => [a] -> [a]
+removeDups []       = []
+removeDups (x:xs)   = x : removeDups (filter (/= x) xs)
+
+isHeader :: String -> Bool
+isHeader [] = False
+isHeader (c:_) = c == '<'
+
+-- Filters all headers out of the list
+filterAllHeaders :: [String] -> [String]
+filterAllHeaders = filter (not . isHeader)
+
+-- Trims one character off the left
+trimL :: String -> String
+trimL []        = []
+trimL (c:cs)    = cs
+
+-- Trims one character off the right
+trimR :: String -> String
+trimR str = case reverse str of
+    (c:cs) -> reverse cs
+    [] -> []
+
+trimLR :: String -> String
+trimLR = trimR . trimL
+
+-- Deletes every line except for the headers, and removes the angle brackets
+extractHeaders :: [String] -> [String]
+extractHeaders []   = []
+extractHeaders strs = map trimLR (filter isHeader strs)
 
 checkFlags :: [Char] -> Bool
 checkFlags ""       = True
@@ -117,29 +152,54 @@ main = do
     args <- getArgs
     let (argv, flags, longFlags) = parseArgs args
 
-    when (null argv)                $ throw (Error "Error: No arguments specified")
-    unless (checkFlags flags)       $ throw (Error "Error: Invalid flag")
-    unless (checkLFlags longFlags)  $ throw (Error "Error: Invalid long flag")
+    if
+        'h' `elem` flags
+    then
+        do
+            putStrLn helpMessage
+    else
+        do
+            when (null argv)                $ throw (Error "Error: No arguments specified")
+            unless (checkFlags flags)       $ throw (Error "Error: Invalid flag")
+            unless (checkLFlags longFlags)  $ throw (Error "Error: Invalid long flag")
 
-    let (filePath:arguments) = argv
-    
-    {-
-    print ("filePath: " ++ filePath)
-    print ("arguments: " ++ concat arguments)
-    print ("flags: " ++ flags)
-    print ("longFlags: " ++ concat longFlags)
-    -}
-    
-    rawText <- readFile filePath
-    
-    -- Handle multiline comments
-    let parse1 = handleMultilines rawText
+            let (filePath:arguments) = argv
+            
+            {-
+            print ("filePath: " ++ filePath)
+            print ("arguments: " ++ concat arguments)
+            print ("flags: " ++ flags)
+            print ("longFlags: " ++ concat longFlags)
+            -}
+            
+            rawText <- readFile filePath
+            
+            -- Handle multiline comments
+            let parse1 = handleMultilines rawText
 
-    -- Handle inline comments
-    let lf = ("prospective" `elem` longFlags, "optional" `elem` longFlags, "unneeded" `elem` longFlags)
-    let strList = parseRaw lf parse1
+            -- Handle inline comments
+            let lf = ("prospective" `elem` longFlags, "optional" `elem` longFlags, "unneeded" `elem` longFlags)
+            let strList = parseRaw lf parse1
 
-    -- Get rid of whitespace, and also limit each line to one word, dropping the rest
-    let trimmedList = deleteEmpty (map (firstOrEmpty . words) strList)
-
-    putStrLn (show trimmedList)
+            -- Get rid of whitespace, and also limit each line to one word, dropping the rest
+            let trimmedList = deleteEmpty (map (firstOrEmpty . words) strList)
+            
+            if
+                'l' `elem` flags
+            then
+                do
+                    putStrLn (show (extractHeaders trimmedList))
+            else if
+                'm' `elem` flags
+            then 
+                do
+                    putStrLn (show trimmedList)
+            else if
+                'e' `elem` flags
+            then
+                do
+                    putStr (show trimmedList)
+            else
+                do
+                    let finalList = filterAllHeaders trimmedList
+                    putStrLn (show finalList)

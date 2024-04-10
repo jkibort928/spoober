@@ -65,3 +65,4 @@ Note: this readme is currrently for my own reference. This will probably be turn
         '*#' = prospective   (useful but unneeded atm, install when needed)
 
     Optionals can be specified by passing --<optional> to the parser, ex. --unneeded
+    Additionally, --all can be passed to specify all optionals

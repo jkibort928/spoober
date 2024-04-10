@@ -3,6 +3,7 @@ import System.Environment (getArgs)
 import Control.Exception ( throw, Exception )
 import Control.Monad ( when, unless )
 --import Data.Char (isSpace)
+import Data.List ( intercalate )
 
 -- Error handling
 import Data.Typeable ( Typeable )
@@ -25,10 +26,13 @@ isWhitespace = all isSpace
 helpMessage :: String
 helpMessage = "hai"
 
+listToPrint :: [String] -> String
+listToPrint = unwords
+
 possibleFlags :: String
 possibleFlags = "hlme"
 possibleLFlags :: [String]
-possibleLFlags = ["prospective", "optional", "unneeded"]
+possibleLFlags = ["all", "prospective", "optional", "unneeded"]
 
 -- If the list is empty, return "", else it'll return the first element
 firstOrEmpty :: [String] -> String
@@ -65,6 +69,40 @@ trimR str = case reverse str of
 
 trimLR :: String -> String
 trimLR = trimR . trimL
+
+-- Returns the strings that are included within the given modules
+specifyModules :: [String] -> [String] -> [String]
+specifyModules mods list = reverse (helper [] "" mods list)
+    where
+        helper acc currmod ms strs 
+            | currmod == "" = case strs of
+                (s:ss)
+                    | isHeader s && trimLR s `elem` ms    -> helper acc (trimLR s) ms ss  -- Feasible header found
+                    | otherwise                             -> helper acc ""         ms ss  -- Accept nothing until we find a feasible header
+                [] -> acc
+            | otherwise     = case strs of
+                (s:ss)
+                    | isHeader s && trimLR s == currmod   -> helper acc     ""      ms ss -- We hit the end of the module
+                    | isHeader s                            -> helper acc     currmod ms ss -- Skip headers
+                    | otherwise                             -> helper (s:acc) currmod ms ss -- Accept the string
+                [] -> acc
+
+-- Returns the strings that are not included in the given modules
+excludeModules :: [String] -> [String] -> [String]
+excludeModules mods list = reverse (helper [] "" mods list)
+    where
+        helper acc currmod ms strs
+            | currmod == "" = case strs of
+                (s:ss)
+                    | isHeader s && trimLR s `elem` ms    -> helper acc     (trimLR s) ms ss -- Infeasible header found
+                    | isHeader s                            -> helper acc     ""         ms ss -- Skip headers
+                    | otherwise                             -> helper (s:acc) ""         ms ss -- Accept the string
+                [] -> acc
+            | otherwise     = case strs of
+                (s:ss)
+                    | isHeader s && trimLR s == currmod   -> helper acc ""      ms ss -- We hit the end of the module
+                    | otherwise                             -> helper acc currmod ms ss -- Accept nothing until we hit the end of the module
+                [] -> acc
 
 -- Deletes every line except for the headers, and removes the angle brackets
 extractHeaders :: [String] -> [String]
@@ -152,54 +190,46 @@ main = do
     args <- getArgs
     let (argv, flags, longFlags) = parseArgs args
 
-    if
-        'h' `elem` flags
-    then
-        do
-            putStrLn helpMessage
-    else
-        do
-            when (null argv)                $ throw (Error "Error: No arguments specified")
-            unless (checkFlags flags)       $ throw (Error "Error: Invalid flag")
-            unless (checkLFlags longFlags)  $ throw (Error "Error: Invalid long flag")
+    if 'h' `elem` flags then do
+        putStrLn helpMessage
+    else do
+        when (null argv)                $ throw (Error "Error: No arguments specified")
+        unless (checkFlags flags)       $ throw (Error "Error: Invalid flag")
+        unless (checkLFlags longFlags)  $ throw (Error "Error: Invalid long flag")
 
-            let (filePath:arguments) = argv
-            
-            {-
-            print ("filePath: " ++ filePath)
-            print ("arguments: " ++ concat arguments)
-            print ("flags: " ++ flags)
-            print ("longFlags: " ++ concat longFlags)
-            -}
-            
-            rawText <- readFile filePath
-            
-            -- Handle multiline comments
-            let parse1 = handleMultilines rawText
+        let (filePath:arguments) = argv
+        
+        {-
+        print ("filePath: " ++ filePath)
+        print ("arguments: " ++ concat arguments)
+        print ("flags: " ++ flags)
+        print ("longFlags: " ++ concat longFlags)
+        -}
+        
+        rawText <- readFile filePath
+        
+        -- Handle multiline comments
+        let parse1 = handleMultilines rawText
 
-            -- Handle inline comments
-            let lf = ("prospective" `elem` longFlags, "optional" `elem` longFlags, "unneeded" `elem` longFlags)
-            let strList = parseRaw lf parse1
+        -- Handle inline comments
+        
+        let lf =
+                if "all" `elem` longFlags then
+                    (True, True, True)
+                else
+                    ("prospective" `elem` longFlags, "optional" `elem` longFlags, "unneeded" `elem` longFlags)
+                    
+        let strList = parseRaw lf parse1
 
-            -- Get rid of whitespace, and also limit each line to one word, dropping the rest
-            let trimmedList = deleteEmpty (map (firstOrEmpty . words) strList)
-            
-            if
-                'l' `elem` flags
-            then
-                do
-                    putStrLn (show ((removeDups . extractHeaders) trimmedList))
-            else if
-                'm' `elem` flags
-            then 
-                do
-                    putStrLn (show trimmedList)
-            else if
-                'e' `elem` flags
-            then
-                do
-                    putStr (show trimmedList)
-            else
-                do
-                    let finalList = filterAllHeaders trimmedList
-                    putStrLn (show finalList)
+        -- Get rid of whitespace, and also limit each line to one word, dropping the rest
+        let trimmedList = deleteEmpty (map (firstOrEmpty . words) strList)
+        
+        if 'l' `elem` flags then do
+                putStrLn (listToPrint ((removeDups . extractHeaders) trimmedList))
+        else if 'e' `elem` flags then do
+            putStrLn (listToPrint (excludeModules arguments trimmedList))
+        else if 'm' `elem` flags then do
+            putStrLn (listToPrint (specifyModules arguments trimmedList))
+        else do
+            let finalList = filterAllHeaders trimmedList
+            putStrLn (listToPrint finalList)

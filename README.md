@@ -7,10 +7,28 @@ Note: this readme sucks lol
 - Install ghc using ghcup if you haven't already
 - Run 'make' in the repo directory
 - You now have a binary for spoober located at src/bin/Main
-- Move src/bin/Main anywhere you like, and rename it whatever you want :D
+- Move src/bin/Main anywhere you like, and rename it whatever you want (only if the name is "spoober")
 (very professional and cool installation instructions)
 
 # USAGE
+`$ spoober [OPTIONS] <FILE> [MODULES]`
+
+	OPTIONS: 
+ 		-h: 		Display this help message
+   		-l: 		list all modules within the file
+     		-m: 		Only select packages within specified modules
+       		-e: 		Exclude packages within specified modules
+	 
+	 	--all: 		Uncomment all conditional comments 	(*#, ?#, !#)
+   		--prospective: 	Uncomment prospective packages 		(*#)
+     		--optional: 	Uncomment optional packages 		(?#)
+       		--unneeded: 	Uncomment unneeded packages 		(!#)
+	FILE:
+  		The infile to read
+    	MODULES:
+     		The modules you wish to specify
+       		(will do nothing unless -m or -e is active)
+
 This program will take an input file, and spit out a list of packages.
 (Example input files can be found in the examples directory)
 

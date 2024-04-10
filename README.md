@@ -3,6 +3,23 @@ A text file parser, designed for keeping organized lists of packages for easy re
 
 Note: this readme is currrently for my own reference. This will probably be turned into a manpage if I figure out how to do that lol.
 
+# INSTALLATION
+- Install ghc using ghcup if you haven't already
+- Run 'make' in the repo directory
+- You now have a binary for spoober located at src/bin/Main
+- Move src/bin/Main anywhere you like, and rename it whatever you want :D
+(very professional and cool installation instructions)
+
+# USAGE
+Use this program as an input to a package manager through a subshell.
+
+Note: FOR SAFETY, REDIRECT STDERR TO /dev/null TO AVOID UNINTENDED CONSEQUENCES
+
+Example: 
+	`# pacman -S $(spoober infile.spoob 2>/dev/null)`
+
+(I really should think of a better way around this)
+
 # .spoob file parser specification:
 
     Input: A file containing a newline separated list of strings

@@ -1,5 +1,6 @@
 # spoober
-A text file parser, designed for keeping organized lists of packages for easy one-command installation.
+A text file parser, designed for keeping organized lists of packages for easy one-command installation, written in Haskell.
+
 I made this project to assist with reinstalling my OS
 
 Note: this readme sucks lol

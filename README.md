@@ -11,6 +11,7 @@ Note: this readme sucks lol
 (very professional and cool installation instructions)
 
 # USAGE
+This program will take an input file, and spit out a list of packages.
 (Example input files can be found in the examples directory)
 
 Use this program as an input to a package manager install command through a subshell.

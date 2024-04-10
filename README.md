@@ -1,5 +1,6 @@
 # spoober
-A text file parser, designed for keeping organized lists of packages for easy reinstall.
+A text file parser, designed for keeping organized lists of packages for easy one-command installation.
+I made this project to assist with reinstalling my OS
 
 Note: this readme sucks lol
 
@@ -28,6 +29,12 @@ Note: this readme sucks lol
     	MODULES:
      		The modules you wish to specify
        		(will do nothing unless -m or -e is active)
+
+  	Examples:
+   		spoober -l infile.spoob
+     		spoober -m infile.spoob module1 module2
+       		spoober -e infile.spoob module3
+	 	spoober infile.spoob --prospective --optional
 
 This program will take an input file, and spit out a list of packages.
 (Example input files can be found in the examples directory)

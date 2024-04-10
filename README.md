@@ -11,7 +11,7 @@ Note: this readme sucks lol
 (very professional and cool installation instructions)
 
 # USAGE
-`$ spoober [OPTIONS] <FILE> [MODULES]`
+	spoober [OPTIONS] <FILE> [MODULES]
 
 	OPTIONS: 
  		-h: 		Display this help message

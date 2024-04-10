@@ -36,7 +36,7 @@ Note: this readme sucks lol
        		spoober -e infile.spoob module3
 	 	spoober infile.spoob --prospective --optional
 
-This program will take an input file, and spit out a list of packages.
+This program will take an input file, and spit out a space-separated list of packages.
 (Example input files can be found in the examples directory)
 
 Use this program as an input to a package manager install command through a subshell.

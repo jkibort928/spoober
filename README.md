@@ -1,7 +1,7 @@
 # spoober
 A text file parser, designed for keeping organized lists of packages for easy reinstall.
 
-Note: this readme is currrently for my own reference. This will probably be turned into a manpage if I figure out how to do that lol.
+Note: this readme sucks lol
 
 # INSTALLATION
 - Install ghc using ghcup if you haven't already

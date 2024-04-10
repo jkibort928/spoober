@@ -7,7 +7,7 @@
     Output: A space separated list of strings (to be used in pacman/paru/etc.)
 
     Whitespace will be ignored.
-	If a line contains multiple words, only the first oen will be recognizedd
+	If a line contains multiple words, only the first one will be recognized
 
     '#'     is a comment, the parser should ignore everything after it on the same line
     '!#'    is an optional. Optionals are like comments, but can be "uncommented" by specifying a certain flag in the parser

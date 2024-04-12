@@ -26,16 +26,16 @@ Note: this readme sucks lol
      		--optional: 	Uncomment optional packages 		(?#)
        		--unneeded: 	Uncomment unneeded packages 		(!#)
 	FILE:
-  		The infile to read
-    	MODULES:
-     		The modules you wish to specify
-       		(will do nothing unless -m or -e is active)
+		The infile to read
+	MODULES:
+		The modules you wish to specify
+		(will do nothing unless -m or -e is active)
 
   	Examples:
-   		spoober -l infile.spoob
-     		spoober -m infile.spoob module1 module2
-       		spoober -e infile.spoob module3
-	 	spoober infile.spoob --prospective --optional
+		spoober -l infile.spoob
+		spoober -m infile.spoob module1 module2
+		spoober -e infile.spoob module3
+		spoober infile.spoob --prospective --optional
 
 This program will take an input file, and spit out a space-separated list of packages.
 (Example input files can be found in the examples directory)

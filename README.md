@@ -23,8 +23,8 @@ Note: this readme sucks lol
 	 
 	 	--all: 		Uncomment all conditional comments 	(*#, ?#, !#)
    		--prospective: 	Uncomment prospective packages 		(*#)
-     		--optional: 	Uncomment optional packages 		(?#)
-       		--unneeded: 	Uncomment unneeded packages 		(!#)
+		--optional: 	Uncomment optional packages 		(?#)
+		--unneeded: 	Uncomment unneeded packages 		(!#)
 	FILE:
 		The infile to read
 	MODULES:

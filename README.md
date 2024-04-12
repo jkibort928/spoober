@@ -16,10 +16,10 @@ Note: this readme sucks lol
 	spoober [OPTIONS] <FILE> [MODULES]
 
 	OPTIONS: 
- 		-h: 		Display this help message
-   		-l: 		list all modules within the file
-     		-m: 		Only select packages within specified modules
-       		-e: 		Exclude packages within specified modules
+		-h: 		Display this help message
+		-l: 		list all modules within the file
+		-m: 		Only select packages within specified modules
+		-e: 		Exclude packages within specified modules
 	 
 	 	--all: 		Uncomment all conditional comments 	(*#, ?#, !#)
    		--prospective: 	Uncomment prospective packages 		(*#)

@@ -56,18 +56,22 @@ isHeader (c:_) = c == '<'
 filterAllHeaders :: [String] -> [String]
 filterAllHeaders = filter (not . isHeader)
 
--- Trims one character off the left
-trimL :: String -> String
+-- Trims one element off the left of a list
+trimL :: [a] -> [a]
 trimL []        = []
-trimL (c:cs)    = cs
+trimL (x:xs)    = xs
 
--- Trims one character off the right
-trimR :: String -> String
-trimR str = case reverse str of
-    (c:cs) -> reverse cs
-    [] -> []
+-- Trims one element off the right of a list 
+trimR :: [a] -> [a]
+trimR l = reverse (helper [] l)
+   where
+      helper acc lis = case lis of
+         (x:[])    -> acc
+         (x:xs)    -> helper (x:acc) xs
+         otherwise -> acc
 
-trimLR :: String -> String
+-- Trims the left and right elements off a list 
+trimLR :: [a] -> [a]
 trimLR = trimR . trimL
 
 -- Returns the strings that are included within the given modules

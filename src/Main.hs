@@ -24,7 +24,7 @@ isWhitespace = all isSpace
 -}
 
 helpMessage :: String
-helpMessage = "hai"
+helpMessage = "spoober [OPTIONS] <FILE> [MODULES]\n\nOPTIONS:\n\t-h: \t\tDisplay this help message\n\t-l: \t\tlist all modules within the file\n\t-m: \t\tOnly select packages within specified modules\n\t-e: \t\tExclude packages within specified modules\n\n \t--all: \t\tUncomment all conditional comments \t(*#, ?#, !#)\n\t--prospective: \tUncomment prospective packages \t\t(*#)\n\t--optional: \tUncomment optional packages \t\t(?#)\n\t--unneeded: \tUncomment unneeded packages \t\t(!#)\nFILE:\n\tThe infile to read\nMODULES:\n\tThe modules you wish to specify\n\t(will do nothing unless -m or -e is active)\n\nExamples:\n\tspoober -l infile.spoob\n\tspoober -m infile.spoob module1 module2\n\tspoober -e infile.spoob module3\n\tspoober infile.spoob --prospective --optional"
 
 listToPrint :: [String] -> String
 listToPrint = unwords

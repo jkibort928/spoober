@@ -61,7 +61,7 @@ Example:
 	'*#' is an optional.
 	
 	'/*' is a multiline comment start
-	'*/' is the end of a multiline comment (can't type it or it would uncomment this)
+	'*/' is the end of a multiline comment
 	
 	'<' is the start of a heading
 	'>' is the end of a heading

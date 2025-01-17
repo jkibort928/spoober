@@ -110,4 +110,4 @@ Example:
 	'!#' = unneeded      ("don't need this")
 	
 	Optionals can be specified by passing --<optional> to the parser, ex. --unneeded
-	Passing --all to the parser will specify all modules at once.
+	Passing --all to the parser will specify all optionals at once.

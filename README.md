@@ -3,8 +3,6 @@ A text file parser, designed for keeping organized lists of packages for easy on
 
 I made this project to assist with reinstalling my OS
 
-Note: this readme sucks lol
-
 # INSTALLATION
 - Install ghc using ghcup if you haven't already
 - Run 'make' in the repo directory

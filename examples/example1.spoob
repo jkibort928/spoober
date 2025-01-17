@@ -1,72 +1,10 @@
 ############################################################################
 
 /*
-    .spoob file specification:
-
-    Input: A file containing a newline separated list of strings
-    Output: A space separated list of strings (to be used in pacman/paru/etc.)
-
-    Whitespace will be ignored.
-	If a line contains multiple words, only the first one will be recognized
-
-    '#'     is a comment, the parser should ignore everything after it on the same line
-    '!#'    is an optional. Optionals are like comments, but can be "uncommented" by specifying a certain flag in the parser
-    '?#'    is an optional.
-    '*#'    is an optional.
-
-    '/*'    is a multiline comment start
-    (the opposite) is the end of a multiline comment (can't type it or it would uncomment this)
-
-    '<'     is the start of a heading
-    '>'     is the end of a heading
-
-    Headings allow you to specify certain "modules"
-
-    To list the headings in a file, use the -l flag.
-
-    To only output strings in desired modules, specify the -m flag,
-    the parser will read command line arguments for desired modules.
-    (note: the first argument should always be the infile)
-
-    ex: spoober infile.spoob -m module1 module2 module3
-    ex: spoober -m infile.spoob module1 module2 module3
-
-    Passing the -e flag will do the same, but EXCLUDE specified modules.
-    (every item except ones in the specified modules)
-    This will supercede the -m flag.
-
-    Headings can be nested in the input file, for example:
-
-        <h1>
-            item1
-            <h2>
-                item2
-
-    In the above example, item1 is a part of module h1, but not h2.
-    item2 is a part of module h1 and h2.
-    Invoking the parser with module h1 specified, you will get item1 and item2 in the output.
-    Invoking the parser with module h2 specified, you will get item2.
-    (Note: indentation is irrelevant to the parser)
-
-    Headers can be closed by simply putting the same header again. Ex:
-
-        <h1>
-            item1
-        <h1>
-        <h2>
-            item2
-        <h2>
-
-    The above example excludes item2 from module h1.
-
     Optionals Legend:
         '*#' = prospective   (useful but unneeded atm, install when needed)
         '?#' = optional      (probably don't need this)
         '!#' = unneeded      (don't need this)
-
-    Optionals can be specified by passing --<optional> to the parser, ex. --unneeded
-    Passing --all to the parser will specify all modules at once.
-
 */
 
 ############################################################################
@@ -89,9 +27,9 @@ rsync
 
 <util>
 	htop
-	*# btop # cooler but harder to read lol
+	*# btop # cooler htop
 	!# neofetch
-	fastfetch # neofetch but you can actually put it in a .bashrc
+	fastfetch # neofetch but actually fast enough to run every time you start a terminal
 	tldr
 <util>
 

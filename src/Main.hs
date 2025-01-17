@@ -2,7 +2,6 @@ import System.IO
 import System.Environment (getArgs)
 import Control.Exception ( throw, Exception )
 import Control.Monad ( when, unless )
---import Data.Char (isSpace)
 import Data.List ( intercalate )
 
 -- Error handling
@@ -10,18 +9,6 @@ import Data.Typeable ( Typeable )
 newtype Error = Error {errMsg :: String}
     deriving (Show, Typeable)
 instance Exception Error
-
-{- Didnt need it afterall
--- modified from https://stackoverflow.com/a/9722949
-mapTriple :: (a -> b) -> (a, a, a) -> (b, b, b)
-mapTriple f (a1, a2, a3) = (f a1, f a2, f a3)
--}
-
-{- unneeded too lol
--- modified from https://stackoverflow.com/a/20124026
-isWhitespace :: String -> Bool
-isWhitespace = all isSpace
--}
 
 helpMessage :: String
 helpMessage = "Usage: spoober [OPTIONS] <FILE> [MODULES]\n\nOPTIONS:\n\t-h: \t\tDisplay this help message\n\t-l: \t\tlist all modules within the file\n\t-m: \t\tOnly select packages within specified modules\n\t-e: \t\tExclude packages within specified modules\n\n\t--all:\t\tUncomment all conditional comments\t(*#, ?#, !#)\n\t--prospective: \tUncomment prospective packages\t\t(*#)\n\t--optional: \tUncomment optional packages \t\t(?#)\n\t--unneeded: \tUncomment unneeded packages \t\t(!#)\nFILE:\n\tThe infile to read\nMODULES:\n\tThe modules you wish to specify\n\t(will do nothing unless -m or -e is active)\n\nExamples:\n\tspoober -l infile.spoob\n\tspoober -m infile.spoob module1 module2\n\tspoober -e infile.spoob module3\n\tspoober infile.spoob --prospective --optional\n"
@@ -212,17 +199,18 @@ main = do
         
         rawText <- readFile filePath
         
-        -- Handle multiline comments
+        -- Remove multiline comments
         let parse1 = handleMultilines rawText
 
-        -- Handle inline comments
-        
+        -- Determine longflags
         let lf =
                 if "all" `elem` longFlags then
                     (True, True, True)
                 else
                     ("prospective" `elem` longFlags, "optional" `elem` longFlags, "unneeded" `elem` longFlags)
-                    
+
+        -- Handle inline comments and parse the text
+        -- (treating # as a comment, and (*#, ?#, !#) as comments according to which longflags are specified)
         let strList = parseRaw lf parse1
 
         -- Get rid of whitespace, and also limit each line to one word, dropping the rest

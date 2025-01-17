@@ -105,9 +105,9 @@ Example:
 	The above example excludes item2 from module h1.
 	
 	Optionals Legend:
-	'*#' = prospective   (useful but unneeded atm, install when needed)
-	'?#' = optional      (probably don't need this)
-	'!#' = unneeded      (don't need this)
+	'*#' = prospective   ("useful but unneeded at the moment, install when needed")
+	'?#' = optional      ("probably don't need this")
+	'!#' = unneeded      ("don't need this")
 	
 	Optionals can be specified by passing --<optional> to the parser, ex. --unneeded
 	Passing --all to the parser will specify all modules at once.

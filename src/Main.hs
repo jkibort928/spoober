@@ -13,13 +13,10 @@ instance Exception Error
 helpMessage :: String
 helpMessage = "Usage: spoober [OPTIONS] <FILE> [MODULES]\n\nOPTIONS:\n\t-h: \t\tDisplay this help message\n\t-l: \t\tlist all modules within the file\n\t-m: \t\tOnly select packages within specified modules\n\t-e: \t\tExclude packages within specified modules\n\n\t--all:\t\tUncomment all conditional comments\t(*#, ?#, !#)\n\t--prospective: \tUncomment prospective packages\t\t(*#)\n\t--optional: \tUncomment optional packages \t\t(?#)\n\t--unneeded: \tUncomment unneeded packages \t\t(!#)\nFILE:\n\tThe infile to read\nMODULES:\n\tThe modules you wish to specify\n\t(will do nothing unless -m or -e is active)\n\nExamples:\n\tspoober -l infile.spoob\n\tspoober -m infile.spoob module1 module2\n\tspoober -e infile.spoob module3\n\tspoober infile.spoob --prospective --optional\n"
 
-listToPrint :: [String] -> String
-listToPrint = unwords
-
 possibleFlags :: String
-possibleFlags = "hlme"
+possibleFlags = "hlmen"
 possibleLFlags :: [String]
-possibleLFlags = ["help", "all", "prospective", "optional", "unneeded"]
+possibleLFlags = ["help", "all", "prospective", "optional", "unneeded", "newline"]
 
 -- If the list is empty, return "", else it'll return the first element
 firstOrEmpty :: [String] -> String
@@ -215,13 +212,16 @@ main = do
 
         -- Get rid of whitespace, and also limit each line to one word, dropping the rest
         let trimmedList = deleteEmpty (map (firstOrEmpty . words) strList)
+
+        -- Separator for printing
+        let sep = if 'n' `elem` flags || "newline" `elem` longFlags then "\n" else " "
         
         if 'l' `elem` flags then do
-                putStrLn (listToPrint ((removeDups . extractHeaders) trimmedList))
+                putStrLn (intercalate sep ((removeDups . extractHeaders) trimmedList))
         else if 'e' `elem` flags then do
-            putStrLn (listToPrint (excludeModules arguments trimmedList))
+            putStrLn (intercalate sep (excludeModules arguments trimmedList))
         else if 'm' `elem` flags then do
-            putStrLn (listToPrint (specifyModules arguments trimmedList))
+            putStrLn (intercalate sep (specifyModules arguments trimmedList))
         else do
             let finalList = filterAllHeaders trimmedList
-            putStrLn (listToPrint finalList)
+            putStrLn (intercalate sep finalList)

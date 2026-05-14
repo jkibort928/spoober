@@ -26,66 +26,47 @@ isHeader :: String -> Bool
 isHeader [] = False
 isHeader (c:_) = c == '<'
 
--- Filters all headers out of the list
-filterAllHeaders :: [String] -> [String]
-filterAllHeaders = filter (not . isHeader)
+isClosingHeader :: String -> Bool
+isClosingHeader s = isHeader s && take 2 s == "</"
 
--- Trims one element off the left of a list
-trimL :: [a] -> [a]
-trimL []        = []
-trimL (x:xs)    = xs
+isOpeningHeader :: String -> Bool
+isOpeningHeader s = isHeader s && not (isClosingHeader s)
 
--- Trims one element off the right of a list 
-trimR :: [a] -> [a]
-trimR l = reverse (helper [] l)
-   where
-      helper acc lis = case lis of
-         (x:[])    -> acc
-         (x:xs)    -> helper (x:acc) xs
-         otherwise -> acc
+-- "<h1>" and "</h1>" both become "h1"
+normalizeHeader :: String -> String
+normalizeHeader str = filter (`notElem` "<>/") str
 
--- Trims the left and right elements off a list 
-trimLR :: [a] -> [a]
-trimLR = trimR . trimL
+processModules :: Bool -> [String] -> [String] -> [String]
+processModules isExclude ms list = reverse (helper [] [] list)
+    where
+        helper acc modstack strs = case strs of
+            [] -> acc
+            (s:ss)
+                | isOpeningHeader s -> helper acc (normalizeHeader s : modstack) ss
+                | isClosingHeader s -> case modstack of
+                    []         -> errorWithoutStackTrace ("Unexpected closing header: " ++ s)
+                    (top:rest) -> if normalizeHeader s == top 
+                                  then helper acc rest ss 
+                                  else errorWithoutStackTrace ("Mismatched header: expected </" ++ top ++ ">, got " ++ s)
+                | shouldAccept modstack -> helper (s:acc) modstack ss
+                | otherwise             -> helper acc     modstack ss
+
+        shouldAccept stack = 
+            let isActive = any (`elem` ms) stack
+            in if isExclude then not isActive else isActive
 
 -- Returns the strings that are included within the given modules
 specifyModules :: [String] -> [String] -> [String]
-specifyModules mods list = reverse (helper [] "" mods list)
-    where
-        helper acc currmod ms strs 
-            | currmod == "" = case strs of
-                (s:ss)
-                    | isHeader s && trimLR s `elem` ms  -> helper acc (trimLR s) ms ss  -- Feasible header found
-                    | otherwise                         -> helper acc ""         ms ss  -- Accept nothing until we find a feasible header
-                [] -> acc
-            | otherwise     = case strs of
-                (s:ss)
-                    | isHeader s && trimLR s == currmod -> helper acc     ""      ms ss -- We hit the end of the module
-                    | isHeader s                        -> helper acc     currmod ms ss -- Skip headers
-                    | otherwise                         -> helper (s:acc) currmod ms ss -- Accept the string
-                [] -> acc
+specifyModules = processModules False
 
 -- Returns the strings that are not included in the given modules
 excludeModules :: [String] -> [String] -> [String]
-excludeModules mods list = reverse (helper [] "" mods list)
-    where
-        helper acc currmod ms strs
-            | currmod == "" = case strs of
-                (s:ss)
-                    | isHeader s && trimLR s `elem` ms  -> helper acc     (trimLR s) ms ss -- Infeasible header found
-                    | isHeader s                        -> helper acc     ""         ms ss -- Skip headers
-                    | otherwise                         -> helper (s:acc) ""         ms ss -- Accept the string
-                [] -> acc
-            | otherwise     = case strs of
-                (s:ss)
-                    | isHeader s && trimLR s == currmod -> helper acc ""      ms ss -- We hit the end of the module
-                    | otherwise                         -> helper acc currmod ms ss -- Accept nothing until we hit the end of the module
-                [] -> acc
+excludeModules = processModules True
 
 -- Deletes every line except for the headers, and removes the angle brackets
 extractHeaders :: [String] -> [String]
 extractHeaders []   = []
-extractHeaders strs = map trimLR (filter isHeader strs)
+extractHeaders strs = map normalizeHeader (filter isHeader strs)
 
 checkFlags :: [Char] -> Bool
 checkFlags ""       = True
@@ -169,6 +150,7 @@ main = do
         when (null argv)                $ die "Error: No arguments specified"
         unless (checkFlags flags)       $ die "Error: Invalid flag"
         unless (checkLFlags longFlags)  $ die "Error: Invalid long flag"
+        when ('e' `elem` flags && 'm' `elem` flags) $ die "Error: Cannot use both -e and -m flags simultaneously"
 
         let (filePath:arguments) = argv
         
@@ -182,7 +164,7 @@ main = do
         rawText <- readFile filePath
         
         -- Determine longflags
-        let isAall = "all" `elem` longFlags
+        let isAll = "all" `elem` longFlags
             fProspective    = isAll || "prospective"    `elem` longFlags
             fOptional       = isAll || "optional"       `elem` longFlags
             fUnneeded       = isAll || "unneeded"       `elem` longFlags
@@ -199,7 +181,7 @@ main = do
             4. Purge empty strings from list
         -}
         let pkgList = deleteEmpty 
-                    . map (takeWhile (not . isSpace) . dropWhile isSpace . handleComments lf)
+                    . map (takeWhile (not . isSpace) . dropWhile isSpace . handleComment lf)
                     . lines
                     $ handleMultilines rawText
 
@@ -209,11 +191,10 @@ main = do
             else " "
         
         if 'l' `elem` flags then do
-                putStrLn (intercalate sep ((removeDups . extractHeaders) trimmedList))
+                putStrLn (intercalate sep ((removeDups . extractHeaders) pkgList))
         else if 'e' `elem` flags then do
-            putStrLn (intercalate sep (excludeModules arguments trimmedList))
+            putStrLn (intercalate sep (excludeModules arguments pkgList))
         else if 'm' `elem` flags then do
-            putStrLn (intercalate sep (specifyModules arguments trimmedList))
+            putStrLn (intercalate sep (specifyModules arguments pkgList))
         else do
-            let finalList = filterAllHeaders trimmedList
-            putStrLn (intercalate sep finalList)
+            putStrLn (intercalate sep (excludeModules [] pkgList))

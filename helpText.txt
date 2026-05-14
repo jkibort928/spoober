@@ -1,0 +1,26 @@
+Usage: spoober [OPTIONS] <FILE> [MODULES]
+
+OPTIONS: 
+    -h: 	    	Display this help message
+    -l: 	    	list all modules within the file
+
+    -e: 	    	Exclude all packages from the specified modules
+                        (cannot be specified alongside -m)
+    -m: 	    	Include packages only from the specified modules
+                        (cannot be specified alongside -e)
+
+    --all: 		    Uncomment all conditional comments 	(*#, ?#, !#)
+    --prospective: 	Uncomment prospective packages 		(*#)
+    --optional: 	Uncomment optional packages 		(?#)
+    --unneeded: 	Uncomment unneeded packages 		(!#)
+FILE:
+    The infile to read
+MODULES:
+    The modules you wish to specify
+    (will do nothing unless -m or -e is active)
+
+Examples:
+spoober -l infile.spoob
+spoober -m infile.spoob module1 module2
+spoober -e infile.spoob module3
+spoober infile.spoob --prospective --optional

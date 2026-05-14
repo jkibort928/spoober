@@ -11,36 +11,38 @@ I made this project to assist with reinstalling my OS
 (very professional and cool installation instructions)
 
 # USAGE
-	spoober [OPTIONS] <FILE> [MODULES]
+    Usage: spoober [OPTIONS] <FILE> [MODULES]
 
-	OPTIONS: 
-		-h: 		Display this help message
-		-l: 		list all modules within the file
-		-m: 		Only select packages within specified modules
-		-e: 		Exclude packages within specified modules
-	 
-	 	--all: 		Uncomment all conditional comments 	(*#, ?#, !#)
-   		--prospective: 	Uncomment prospective packages 		(*#)
-		--optional: 	Uncomment optional packages 		(?#)
-		--unneeded: 	Uncomment unneeded packages 		(!#)
-	FILE:
-		The infile to read
-	MODULES:
-		The modules you wish to specify
-		(will do nothing unless -m or -e is active)
+    OPTIONS: 
+        -h: 	   	Display this help message
+        -l: 	   	list all modules within the file
 
-  	Examples:
-		spoober -l infile.spoob
-		spoober -m infile.spoob module1 module2
-		spoober -e infile.spoob module3
-		spoober infile.spoob --prospective --optional
+        -e: 	   	Exclude all packages from the specified modules
+                            (cannot be specified alongside -m)
+        -m: 	   	Include packages only from the specified modules
+                            (cannot be specified alongside -e)
+
+        --all: 		   Uncomment all conditional comments 	(*#, ?#, !#)
+        --prospective: 	Uncomment prospective packages 		(*#)
+        --optional: 	Uncomment optional packages 		(?#)
+        --unneeded: 	Uncomment unneeded packages 		(!#)
+    FILE:
+        The infile to read
+    MODULES:
+        The modules you wish to specify
+        (will do nothing unless -m or -e is active)
+
+    Examples:
+    spoober -l infile.spoob
+    spoober -m infile.spoob module1 module2
+    spoober -e infile.spoob module3
+    spoober infile.spoob --prospective --optional
 
 This program will take an input file, and spit out a space-separated list of packages.
 (Example input files can be found in the examples directory)
 
 Use this program as an input to a package manager install command through a subshell.
-
-It is recommended to run the command on its own before passing it into subshell to avoid mistakes.
+This program has no side effects, so it can safely be executed to test your package list.
 
 # .spoob file format specification:
 
@@ -98,6 +100,24 @@ It is recommended to run the command on its own before passing it into subshell 
 	<h2>
 	
 	The above example excludes item2 from module h1.
+
+	This program also supports XML-Styled end headers, and enforces them if used incorrectly.
+	Example:
+
+	<h1>
+	    item1
+	</h1>
+
+	</h2>
+	    item2
+	</h2>
+
+    <h3>
+        item3
+    </h5>
+
+	In the above example, h1 is valid syntax, and h2 and h3/h5 are both invalid.
+	The parser will error if it encounters either type of scenario.
 	
 	Optionals Legend:
 	'*#' = prospective   ("useful but unneeded at the moment, install when needed")

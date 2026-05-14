@@ -119,7 +119,7 @@ remove2Dash str = case str of
 type LFlags = (Bool, Bool, Bool)
 
 parseArgs :: [String] -> ([String], String, [String])
-parseArgs []            = ([] "" [])
+parseArgs []            = ([], "", [])
 parseArgs strs = helper strs [] "" []
     where
         helper args argv flags longFlags = case args of
@@ -136,11 +136,11 @@ handleMultilines text = reverse (helper False [] text)
         helper isComment acc str = case str of
             (c1:c2:cs)
                 | isComment && [c1,c2] == "*/"  -> helper False acc cs
-                | isComment                     -> helper True acc (c2:cs)
-                | [c1,c2] == "/*"               -> helper True acc cs
+                | isComment                     -> helper True  acc (c2:cs)
+                | [c1,c2] == "/*"               -> helper True  acc cs
                 | otherwise                     -> helper False (c1:acc) (c2:cs) -- only iterate one character at a time, despite looking at 2
             (c:cs)
-                | isComment                     -> helper True acc cs
+                | isComment                     -> helper True  acc cs
                 | otherwise                     -> helper False (c:acc) cs
             []                                  -> acc
 

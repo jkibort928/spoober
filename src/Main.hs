@@ -3,6 +3,7 @@ import System.Environment (getArgs)
 import System.Exit ( die )
 import Control.Monad ( when, unless )
 import Data.List ( intercalate )
+import Data.Char ( isSpace )
 
 helpMessage :: String
 helpMessage = "Usage: spoober [OPTIONS] <FILE> [MODULES]\n\nOPTIONS:\n\t-h: \t\tDisplay this help message\n\t-l: \t\tlist all modules within the file\n\t-m: \t\tOnly select packages within specified modules\n\t-e: \t\tExclude packages within specified modules\n\n\t--all:\t\tUncomment all conditional comments\t(*#, ?#, !#)\n\t--prospective: \tUncomment prospective packages\t\t(*#)\n\t--optional: \tUncomment optional packages \t\t(?#)\n\t--unneeded: \tUncomment unneeded packages \t\t(!#)\nFILE:\n\tThe infile to read\nMODULES:\n\tThe modules you wish to specify\n\t(will do nothing unless -m or -e is active)\n\nExamples:\n\tspoober -l infile.spoob\n\tspoober -m infile.spoob module1 module2\n\tspoober -e infile.spoob module3\n\tspoober infile.spoob --prospective --optional\n"
@@ -11,11 +12,6 @@ possibleFlags :: String
 possibleFlags = "hlmen"
 possibleLFlags :: [String]
 possibleLFlags = ["help", "all", "prospective", "optional", "unneeded", "newline"]
-
--- If the list is empty, return "", else it'll return the first element
-firstOrEmpty :: [String] -> String
-firstOrEmpty []         = ""
-firstOrEmpty (str:strs) = str
 
 -- Deletes all null strings from list
 deleteEmpty :: [String] -> [String]
@@ -129,7 +125,7 @@ parseArgs strs = helper strs [] "" []
                 | otherwise     -> helper as (argv ++ [a])    flags                    longFlags
             []                  -> (argv, flags, longFlags)
 
-
+-- Handles C-Style comments across the full text
 handleMultilines :: String -> String
 handleMultilines text = reverse (helper False [] text)
     where
@@ -144,9 +140,11 @@ handleMultilines text = reverse (helper False [] text)
                 | otherwise                     -> helper False (c:acc) cs
             []                                  -> acc
 
-handleComments :: LFlags -> String -> String
-handleComments lf [] = ""
-handleComments (fProspective, fOptional, fUnneeded) line = reverse (helper [] line)
+-- Handles Hash-Style comments across a single line
+-- (treating # as a comment, and (*#, ?#, !#) as comments according to which longflags are specified)
+handleComment :: LFlags -> String -> String
+handleComment lf [] = ""
+handleComment (fProspective, fOptional, fUnneeded) line = reverse (helper [] line)
     where
         helper acc str = case str of
             (c1:c2:cs)
@@ -159,13 +157,6 @@ handleComments (fProspective, fOptional, fUnneeded) line = reverse (helper [] li
                 | c == '#'          -> acc
                 | otherwise         -> helper (c:acc) cs
             []                      -> acc
-
-parseRaw :: LFlags -> String -> [String]
-parseRaw lf text = reverse (helper [] (lines text))
-    where
-        helper acc [] = acc
-        helper acc (str:strs) = helper (handleComments lf str:acc) strs
-
 
 main :: IO ()
 main = do
@@ -190,25 +181,32 @@ main = do
         
         rawText <- readFile filePath
         
-        -- Remove multiline comments
-        let parse1 = handleMultilines rawText
-
         -- Determine longflags
-        let lf =
-                if "all" `elem` longFlags then
-                    (True, True, True)
-                else
-                    ("prospective" `elem` longFlags, "optional" `elem` longFlags, "unneeded" `elem` longFlags)
+        let isAall = "all" `elem` longFlags
+            fProspective    = isAll || "prospective"    `elem` longFlags
+            fOptional       = isAll || "optional"       `elem` longFlags
+            fUnneeded       = isAll || "unneeded"       `elem` longFlags
+            lf              = (fProspective, fOptional, fUnneeded)
 
-        -- Handle inline comments and parse the text
-        -- (treating # as a comment, and (*#, ?#, !#) as comments according to which longflags are specified)
-        let strList = parseRaw lf parse1
+        {- 
+        Bottom to top logic: 
+            1. Strip multilines
+            2. Split to list of lines
+            3. For each line (right to left logic):
+                - Handle inline comments
+                - Remove leading whitespace
+                - Drop anything after trailing whitespace
+            4. Purge empty strings from list
+        -}
+        let pkgList = deleteEmpty 
+                    . map (takeWhile (not . isSpace) . dropWhile isSpace . handleComments lf)
+                    . lines
+                    $ handleMultilines rawText
 
-        -- Get rid of whitespace, and also limit each line to one word, dropping the rest
-        let trimmedList = deleteEmpty (map (firstOrEmpty . words) strList)
-
-        -- Separator for printing
-        let sep = if 'n' `elem` flags || "newline" `elem` longFlags then "\n" else " "
+        -- Separator for final output
+        let sep = if ('n' `elem` flags || "newline" `elem` longFlags)
+            then "\n"
+            else " "
         
         if 'l' `elem` flags then do
                 putStrLn (intercalate sep ((removeDups . extractHeaders) trimmedList))

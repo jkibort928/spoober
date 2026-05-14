@@ -1,14 +1,8 @@
 import System.IO
 import System.Environment (getArgs)
-import Control.Exception ( throw, Exception )
+import System.Exit ( die )
 import Control.Monad ( when, unless )
 import Data.List ( intercalate )
-
--- Error handling
-import Data.Typeable ( Typeable )
-newtype Error = Error {errMsg :: String}
-    deriving (Show, Typeable)
-instance Exception Error
 
 helpMessage :: String
 helpMessage = "Usage: spoober [OPTIONS] <FILE> [MODULES]\n\nOPTIONS:\n\t-h: \t\tDisplay this help message\n\t-l: \t\tlist all modules within the file\n\t-m: \t\tOnly select packages within specified modules\n\t-e: \t\tExclude packages within specified modules\n\n\t--all:\t\tUncomment all conditional comments\t(*#, ?#, !#)\n\t--prospective: \tUncomment prospective packages\t\t(*#)\n\t--optional: \tUncomment optional packages \t\t(?#)\n\t--unneeded: \tUncomment unneeded packages \t\t(!#)\nFILE:\n\tThe infile to read\nMODULES:\n\tThe modules you wish to specify\n\t(will do nothing unless -m or -e is active)\n\nExamples:\n\tspoober -l infile.spoob\n\tspoober -m infile.spoob module1 module2\n\tspoober -e infile.spoob module3\n\tspoober infile.spoob --prospective --optional\n"
@@ -65,14 +59,14 @@ specifyModules mods list = reverse (helper [] "" mods list)
         helper acc currmod ms strs 
             | currmod == "" = case strs of
                 (s:ss)
-                    | isHeader s && trimLR s `elem` ms    -> helper acc (trimLR s) ms ss  -- Feasible header found
-                    | otherwise                             -> helper acc ""         ms ss  -- Accept nothing until we find a feasible header
+                    | isHeader s && trimLR s `elem` ms  -> helper acc (trimLR s) ms ss  -- Feasible header found
+                    | otherwise                         -> helper acc ""         ms ss  -- Accept nothing until we find a feasible header
                 [] -> acc
             | otherwise     = case strs of
                 (s:ss)
-                    | isHeader s && trimLR s == currmod   -> helper acc     ""      ms ss -- We hit the end of the module
-                    | isHeader s                            -> helper acc     currmod ms ss -- Skip headers
-                    | otherwise                             -> helper (s:acc) currmod ms ss -- Accept the string
+                    | isHeader s && trimLR s == currmod -> helper acc     ""      ms ss -- We hit the end of the module
+                    | isHeader s                        -> helper acc     currmod ms ss -- Skip headers
+                    | otherwise                         -> helper (s:acc) currmod ms ss -- Accept the string
                 [] -> acc
 
 -- Returns the strings that are not included in the given modules
@@ -82,14 +76,14 @@ excludeModules mods list = reverse (helper [] "" mods list)
         helper acc currmod ms strs
             | currmod == "" = case strs of
                 (s:ss)
-                    | isHeader s && trimLR s `elem` ms    -> helper acc     (trimLR s) ms ss -- Infeasible header found
-                    | isHeader s                            -> helper acc     ""         ms ss -- Skip headers
-                    | otherwise                             -> helper (s:acc) ""         ms ss -- Accept the string
+                    | isHeader s && trimLR s `elem` ms  -> helper acc     (trimLR s) ms ss -- Infeasible header found
+                    | isHeader s                        -> helper acc     ""         ms ss -- Skip headers
+                    | otherwise                         -> helper (s:acc) ""         ms ss -- Accept the string
                 [] -> acc
             | otherwise     = case strs of
                 (s:ss)
-                    | isHeader s && trimLR s == currmod   -> helper acc ""      ms ss -- We hit the end of the module
-                    | otherwise                             -> helper acc currmod ms ss -- Accept nothing until we hit the end of the module
+                    | isHeader s && trimLR s == currmod -> helper acc ""      ms ss -- We hit the end of the module
+                    | otherwise                         -> helper acc currmod ms ss -- Accept nothing until we hit the end of the module
                 [] -> acc
 
 -- Deletes every line except for the headers, and removes the angle brackets
@@ -125,7 +119,7 @@ remove2Dash str = case str of
 type LFlags = (Bool, Bool, Bool)
 
 parseArgs :: [String] -> ([String], String, [String])
-parseArgs []            = throw (Error "Error: No arguments specified")
+parseArgs []            = ([] "" [])
 parseArgs strs = helper strs [] "" []
     where
         helper args argv flags longFlags = case args of
@@ -181,9 +175,9 @@ main = do
     if ('h' `elem` flags) || ("help" `elem` longFlags) then do
         putStrLn helpMessage
     else do
-        when (null argv)                $ throw (Error "Error: No arguments specified")
-        unless (checkFlags flags)       $ throw (Error "Error: Invalid flag")
-        unless (checkLFlags longFlags)  $ throw (Error "Error: Invalid long flag")
+        when (null argv)                $ die "Error: No arguments specified"
+        unless (checkFlags flags)       $ die "Error: Invalid flag"
+        unless (checkLFlags longFlags)  $ die "Error: Invalid long flag"
 
         let (filePath:arguments) = argv
         

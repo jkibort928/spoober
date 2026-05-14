@@ -40,13 +40,7 @@ This program will take an input file, and spit out a space-separated list of pac
 
 Use this program as an input to a package manager install command through a subshell.
 
-Note: FOR SAFETY, REDIRECT STDERR TO /dev/null TO AVOID UNINTENDED CONSEQUENCES
-	(or just test the command on its own beforehand, it has no side-effects)
-
-Example: 
-	`# pacman -S $(spoober infile.spoob 2>/dev/null)`
-
-(I really should think of a better way around this)
+It is recommended to run the command on its own before passing it into subshell to avoid mistakes.
 
 # .spoob file format specification:
 

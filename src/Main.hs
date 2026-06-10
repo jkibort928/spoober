@@ -2,7 +2,7 @@ import System.IO
 import System.Environment (getArgs)
 import System.Exit ( die )
 import Control.Monad ( when, unless )
-import Data.List ( intercalate )
+import Data.List ( intercalate, isInfixOf )
 import Data.Char ( isSpace )
 
 helpMessage :: String
@@ -122,22 +122,34 @@ handleMultilines text = reverse (helper False [] text)
             []                                  -> acc
 
 -- Handles Hash-Style comments across a single line
--- (treating # as a comment, and (*#, ?#, !#) as comments according to which longflags are specified)
+-- (treating # as a comment, and (*#, ?#, !#) as line-nulllifiers according to which longflags are specified)
 handleComment :: LFlags -> String -> String
-handleComment lf [] = ""
-handleComment (fProspective, fOptional, fUnneeded) line = reverse (helper [] line)
-    where
-        helper acc str = case str of
-            (c1:c2:cs)
-                | c1 == '#'         -> acc
-                | [c1, c2] == "*#"  -> if fProspective then helper acc cs else acc
-                | [c1, c2] == "?#"  -> if fOptional then helper acc cs else acc
-                | [c1, c2] == "!#"  -> if fUnneeded then helper acc cs else acc
-                | otherwise         -> helper (c1:acc) (c2:cs) -- iterate once despite looking at 2
-            (c:cs)
-                | c == '#'          -> acc
-                | otherwise         -> helper (c:acc) cs
-            []                      -> acc
+handleComment (fProspective, fOptional, fUnneeded) line
+     | null stripped = ""
+     | tagExists = if tagEnabled then makeClean remainder else ""
+     | findError stripped =
+         errorWithoutStackTrace ("Invalid comment: Optional tags must be at the start of the line: " ++ line)
+     | otherwise = makeClean line
+     where
+         stripped    = dropWhile isSpace line
+         tag         = take 2 stripped
+         remainder   = drop 2 stripped
+         
+         tags        = ["*#", "?#", "!#"]
+         tagExists   = tag `elem` tags
+         makeClean   = takeWhile (/= '#')
+         
+         findError [] = False
+         findError (c:cs)
+             | c == '#' = False -- Terminate at true comment
+             | take 2 (c:cs) `elem` tags = True
+             | otherwise = findError cs
+
+         tagEnabled = case tag of
+             "*#" -> fProspective
+             "?#" -> fOptional
+             "!#" -> fUnneeded
+             _    -> False
 
 main :: IO ()
 main = do

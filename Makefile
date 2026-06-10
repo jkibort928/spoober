@@ -1,13 +1,13 @@
 all: Main
 
-Main: src/Main.hs bin src/build
-	ghc src/Main.hs -o bin/Main -odir src/build -hidir src/build
+Main: src/Main.hs bin build
+	ghc src/Main.hs -o bin/Main -odir build -hidir build
 
 bin:
 	mkdir -p bin
 
-src/build:
-	mkdir -p src/build
+build:
+	mkdir -p build
 
 clean:
-	rm bin/* src/build/*
+	rm bin/* build/*

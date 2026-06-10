@@ -42,7 +42,9 @@ processModules isExclude ms list = reverse (helper [] [] list)
         helper acc modstack strs = case strs of
             [] -> acc
             (s:ss)
-                | isOpeningHeader s -> helper acc (normalizeHeader s : modstack) ss
+                | isOpeningHeader s -> case modstack of
+                    (top:rest) | normalizeHeader s == top -> helper acc rest ss
+                    _ -> helper acc ((normalizeHeader s):modstack) ss
                 | isClosingHeader s -> case modstack of
                     []         -> errorWithoutStackTrace ("Unexpected closing header: " ++ s)
                     (top:rest) -> if normalizeHeader s == top 
